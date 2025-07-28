@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import imageCompression from 'browser-image-compression';
+import Swal from 'sweetalert2';
 
 
 const ProductUpload = () => {
@@ -28,15 +29,14 @@ const handleUpload = async () => {
   const uploadedImages = [];
 
   for (let i = 0; i < images.length; i++) {
-    // 👉 Compress before upload
     const compressedFile = await imageCompression(images[i], {
-      maxSizeMB: 0.2, // Approx 200 KB
-      maxWidthOrHeight: 1024, // Resize dimensionally
+      maxSizeMB: 0.2,
+      maxWidthOrHeight: 1024,
       useWebWorker: true,
     });
 
     const formData = new FormData();
-    formData.append("file", compressedFile); // Use compressed image
+    formData.append("file", compressedFile);
     formData.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
     formData.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
 
@@ -48,8 +48,41 @@ const handleUpload = async () => {
     uploadedImages.push(res.data.secure_url);
   }
 
+  // 🟢 Post to your backend MongoDB
+  const productData = {
+    name: productName,
+    price,
+    description,
+    mainImage: uploadedImages[mainImageIndex],
+    allImages: uploadedImages,
+    createdAt: new Date()
+  };
+
+  try {
+    const res = await axios.post("http://localhost:3000/products", productData);
+    if (res.data.insertedId) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Product uploaded successfully!',
+      });
+
+      // Reset form
+      setProductName('');
+      setPrice('');
+      setDescription('');
+      setImages([]);
+      setMainImageIndex(0);
+    }
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Upload Failed',
+      text: 'Could not save product to database.',
+    });
+  }
+
   setUploading(false);
-  console.log('Uploaded compressed images:', uploadedImages);
 };
 
 

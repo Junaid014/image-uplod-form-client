@@ -10,6 +10,8 @@ import {
 import Root from './Component/Root.jsx';
 import ProductUpload from './Component/ProductUpload.jsx';
 import Home from './Component/Home.jsx';
+import Products from './Component/Products .jsx';
+import ProductDetails from './Component/ProductDetails .jsx';
 
 const router = createBrowserRouter([
   {
@@ -23,6 +25,14 @@ const router = createBrowserRouter([
       {
         path:'/addProduct',
         Component:ProductUpload
+      },
+      {
+        path:'product',
+        Component:Products
+      },
+      {
+        path:"/product/:id",
+         element:<ProductDetails />
       }
     ]
   },
